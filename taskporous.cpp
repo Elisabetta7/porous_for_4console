@@ -73,7 +73,7 @@ Real htim
 		//hsig(2, 2) = ks * df;
 	//	sig(1, 1) = -ka * porous.force_old;
 	//	hsig(1, 1) = -ka * df;
-		double Sigma_cr = 760e6; // critical value for stress of the beam, in Pa
+		double Sigma_cr = 760e16; // critical value for stress of the beam, in Pa
 		double Sigma_cr2 = 1000e6;// critical value for stress on tension, Pa
 	//	real sig33 = sig(2, 2);
 		Real faza = porous.c_beam[iuz].XXold.Phase;
@@ -96,6 +96,7 @@ else {
 					real force_im = porous.force_old - porous.c_beam[iuz].force_fix;
 					sig(1, 1) = -ka*force_im;
 					//sig(2, 2) = 0.0;
+					sig(2, 2) = porous.c_beam[iuz].s33_fix;
 					hsig(2, 2) = 0.0;
 					fprintf(stderr, "\n  connect by case 1");
 
@@ -220,8 +221,8 @@ real fdshdf = porous.c_beam[iuz].XXnew.TotalStrain(1, 1);// delete!!!!!!!!!!!!!!
 		porous.area_macro = (porous.c_beam[0].width*porous.c_beam[0].little_length)*(1 - porosity)*(-1 + porosity + porous.c_beam[0].noV) / (-1 + porous.c_beam[0].noV);
 		porous.force_new = porous.force_old + porous.hforce;
 		porous.force_new_eff = porous.force_new*0.01003*0.01086*0.151 / porous.area_macro;
-		porous.L_macro_old_overall = porous.c_beam[0].L_macro_old/* + porous.c_beam[1].L_macro_old + 4*porous.c_beam[2].L_macro_old + 4*porous.c_beam[3].L_macro_old + 2*porous.c_beam[4].L_macro_old*/;
-		porous.L_macro_new_overall = porous.c_beam[0].L_macro_new/* + porous.c_beam[1].L_macro_new + 4*porous.c_beam[2].L_macro_new + 4*porous.c_beam[3].L_macro_new + 2*porous.c_beam[4].L_macro_new*/;
+		porous.L_macro_old_overall = porous.c_beam[0].L_macro_old /*+ porous.c_beam[1].L_macro_old + 4*porous.c_beam[2].L_macro_old + 4*porous.c_beam[3].L_macro_old + 2*porous.c_beam[4].L_macro_old*/;
+		porous.L_macro_new_overall = porous.c_beam[0].L_macro_new /*+ porous.c_beam[1].L_macro_new + 4*porous.c_beam[2].L_macro_new + 4*porous.c_beam[3].L_macro_new + 2*porous.c_beam[4].L_macro_new*/;
 		porous.de_macro = (porous.L_macro_new_overall - porous.L_macro_old_overall) / porous.L_macro_old_overall;
 		porous.e_macro += porous.de_macro;
 		porous.stress_macro = porous.force_new / porous.area_macro;
