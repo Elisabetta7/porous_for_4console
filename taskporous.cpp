@@ -73,7 +73,7 @@ Real htim
 		//hsig(2, 2) = ks * df;
 	//	sig(1, 1) = -ka * porous.force_old;
 	//	hsig(1, 1) = -ka * df;
-		double Sigma_cr = 760e16; // critical value for stress of the beam, in Pa
+		double Sigma_cr = 11700e6; // critical value for stress of the beam, in Pa
 		double Sigma_cr2 = 1000e6;// critical value for stress on tension, Pa
 	//	real sig33 = sig(2, 2);
 		Real faza = porous.c_beam[iuz].XXold.Phase;
@@ -102,7 +102,7 @@ else {
 
 					real raps = porous.c_beam[iuz].XXold.TotalStrain(1, 1);
 					real meow = porous.c_beam[iuz].XXnew.TotalStrain(1, 1);
-					porous.c_beam[iuz].XXold.TotalStrain(2, 2) = porous.c_beam[iuz].e33_fix;
+			//		porous.c_beam[iuz].XXold.TotalStrain(2, 2) = porous.c_beam[iuz].e33_fix;
 					Reology(htim, porous.tem_old, porous.htem, fluence, hfluence, sig, hsig, MC, Vrnts, GrPar, porous.c_beam[iuz].XXold, porous.c_beam[iuz].XXnew, porous.c_beam[iuz].phoenix );
 			//		porous.c_beam[iuz].XXnew.TotalStrain(1, 1) -= porous.c_beam[iuz].e22_el_fix;
 					porous.c_beam[iuz].heps_elastic = porous.c_beam[iuz].XXnew.TotalStrain(1, 1) - porous.c_beam[iuz].XXold.TotalStrain(1, 1);
@@ -120,7 +120,7 @@ else {
 																									}
 			else{
 					sig(1, 1) = -ka*porous.force_old;
-					sig(2, 2) = 0.0;
+					sig(2, 2) = porous.c_beam[iuz].e33_fix;
 					hsig(2,2) = 0.0;
 					hsig(1, 1) = -ka*df;
 					fprintf(stderr, "\n  connect by case 2");
@@ -170,6 +170,7 @@ else {
 		    porous.c_beam[iuz].displac_new = porous.c_beam[iuz].displac_old + porous.c_beam[iuz].hdisplac;
 			porous.c_beam[iuz].L_macro_new = porous.c_beam[iuz].thickness + porous.c_beam[iuz].column - abs (porous.c_beam[iuz].displac_new);
 			porous.c_beam[iuz].XXnew.TotalStrain(1, 1) = 0.0;
+			//porous.c_beam[iuz].XXold.PlasticStrain(1, 1) = 0.0;
 
 				if (abs(porous.c_beam[iuz].displac_new) >= (porous.c_beam[iuz].column / 2)){
 					porous.c_beam[iuz].phoenix = 1.0;
@@ -178,7 +179,7 @@ else {
 					printf("\n eps(1,1)=%lg", porous.c_beam[iuz].XXnew.TotalStrain(1, 1));
 					fprintf(stderr, "\n  connected");
 					pause();
-					porous.c_beam[iuz].s33_fix = sig(2, 2);
+				//	porous.c_beam[iuz].s33_fix = sig(2, 2);
 					//porous.c_beam[iuz].e22_el_fix = porous.c_beam[iuz].XXnew.ElStrain(1, 1);
 					porous.c_beam[iuz].e33_fix = porous.c_beam[iuz].XXnew.TotalStrain(2, 2);
 					porous.force_new = porous.force_old + porous.hforce;
@@ -191,6 +192,8 @@ else {
 					porous.c_beam[iuz].XXnew.ElStrain(1, 1) = 0.0;
 					porous.c_beam[iuz].XXnew.mpStrain(1, 1) = 0.0;
 					porous.c_beam[iuz].XXnew.PhaseStrain(1, 1) = 0.0;
+					porous.c_beam[iuz].XXnew.PlasticStrain(1, 1) = 0.0;
+
 				//    porous.c_beam[iuz].XXnew.TotalStrain(1, 1) = 0.0;///&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 																							}
 
@@ -221,8 +224,8 @@ real fdshdf = porous.c_beam[iuz].XXnew.TotalStrain(1, 1);// delete!!!!!!!!!!!!!!
 		porous.area_macro = (porous.c_beam[0].width*porous.c_beam[0].little_length)*(1 - porosity)*(-1 + porosity + porous.c_beam[0].noV) / (-1 + porous.c_beam[0].noV);
 		porous.force_new = porous.force_old + porous.hforce;
 		porous.force_new_eff = porous.force_new*0.01003*0.01086*0.151 / porous.area_macro;
-		porous.L_macro_old_overall = porous.c_beam[0].L_macro_old /*+ porous.c_beam[1].L_macro_old + 4*porous.c_beam[2].L_macro_old + 4*porous.c_beam[3].L_macro_old + 2*porous.c_beam[4].L_macro_old*/;
-		porous.L_macro_new_overall = porous.c_beam[0].L_macro_new /*+ porous.c_beam[1].L_macro_new + 4*porous.c_beam[2].L_macro_new + 4*porous.c_beam[3].L_macro_new + 2*porous.c_beam[4].L_macro_new*/;
+		porous.L_macro_old_overall = porous.c_beam[0].L_macro_old /*+ 2*porous.c_beam[1].L_macro_old /*+ 4*porous.c_beam[2].L_macro_old + 4*porous.c_beam[3].L_macro_old + 2*porous.c_beam[4].L_macro_old*/;
+		porous.L_macro_new_overall = porous.c_beam[0].L_macro_new /*+ 2*porous.c_beam[1].L_macro_new/* + 4*porous.c_beam[2].L_macro_new + 4*porous.c_beam[3].L_macro_new + 2*porous.c_beam[4].L_macro_new*/;
 		porous.de_macro = (porous.L_macro_new_overall - porous.L_macro_old_overall) / porous.L_macro_old_overall;
 		porous.e_macro += porous.de_macro;
 		porous.stress_macro = porous.force_new / porous.area_macro;

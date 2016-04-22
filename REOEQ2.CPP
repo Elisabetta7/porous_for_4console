@@ -891,13 +891,16 @@ void Reology(
    if(XXnew.kzer_dmg >= MC.kzer_cr) XXnew.PI_macro = 1;
    else XXnew.PI_macro = 0;
 
-
+   real siggg = sig(2, 2);
    // Determine Elastic strain
    if (phoenix == 1.0){
 	   sig(2, 2) = 0.0;
    }
    XXnew.ElStrain = Komb(1.0-FazaNew, Hook(MC.YoungA, MC.PuasA, sig),
 	   FazaNew, Hook(MC.YoungM, MC.PuasM, sig));
+
+   sig(2, 2) = siggg;
+
 
    //------------------------------------------------------------------
    //Now A-rad_creep = 0.0 in the beginning of this file
