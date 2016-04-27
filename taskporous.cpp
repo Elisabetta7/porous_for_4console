@@ -120,7 +120,7 @@ else {
 																									}
 			else{
 					sig(1, 1) = -ka*porous.force_old;
-					sig(2, 2) = porous.c_beam[iuz].e33_fix;
+					sig(2, 2) = 0.0;
 					hsig(2,2) = 0.0;
 					hsig(1, 1) = -ka*df;
 					fprintf(stderr, "\n  connect by case 2");
@@ -179,7 +179,7 @@ else {
 					printf("\n eps(1,1)=%lg", porous.c_beam[iuz].XXnew.TotalStrain(1, 1));
 					fprintf(stderr, "\n  connected");
 					pause();
-				//	porous.c_beam[iuz].s33_fix = sig(2, 2);
+					porous.c_beam[iuz].s33_fix = sig(2, 2);
 					//porous.c_beam[iuz].e22_el_fix = porous.c_beam[iuz].XXnew.ElStrain(1, 1);
 					porous.c_beam[iuz].e33_fix = porous.c_beam[iuz].XXnew.TotalStrain(2, 2);
 					porous.force_new = porous.force_old + porous.hforce;
@@ -211,6 +211,7 @@ fprintf(stderr, "\n  first_circle_if_else");
 //if ((porous.c_beam[iuz].phoenix == 1.0) && (porous.c_beam[iuz].XXnew.TotalStrain(1, 1)>porous.c_beam[iuz].e22_fix)){
 if ((porous.c_beam[iuz].phoenix == 1.0) && (porous.c_beam[iuz].L_macro_new > porous.c_beam[iuz].L_macro_fix)){
     porous.c_beam[iuz].phoenix = 0.0;
+	porous.c_beam[iuz].XXnew.TotalStrain(2, 2) = porous.c_beam[iuz].XXold.TotalStrain(2, 2);
 	fprintf(stderr, "\n  disconnect");
 	pause();
 																											 }
