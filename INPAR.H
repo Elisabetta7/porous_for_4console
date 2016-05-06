@@ -234,7 +234,7 @@ class Circular_beam //circular beam is a part of a slotted spring
 	real column;
 	real little_length;
 	real band;
-	int noV;
+	real noV;
 	real J_r;//inertia moment for bending
 	real area; 
 	InternalParameters XXold;

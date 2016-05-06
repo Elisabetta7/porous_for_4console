@@ -102,13 +102,14 @@ else {
 
 					real raps = porous.c_beam[iuz].XXold.TotalStrain(1, 1);
 					real meow = porous.c_beam[iuz].XXnew.TotalStrain(1, 1);
-			//		porous.c_beam[iuz].XXold.TotalStrain(2, 2) = porous.c_beam[iuz].e33_fix;
+					porous.c_beam[iuz].XXold.TotalStrain(2, 2) = porous.c_beam[iuz].e33_fix;
 					Reology(htim, porous.tem_old, porous.htem, fluence, hfluence, sig, hsig, MC, Vrnts, GrPar, porous.c_beam[iuz].XXold, porous.c_beam[iuz].XXnew, porous.c_beam[iuz].phoenix );
 			//		porous.c_beam[iuz].XXnew.TotalStrain(1, 1) -= porous.c_beam[iuz].e22_el_fix;
 					porous.c_beam[iuz].heps_elastic = porous.c_beam[iuz].XXnew.TotalStrain(1, 1) - porous.c_beam[iuz].XXold.TotalStrain(1, 1);
 
 					porous.c_beam[iuz].hdisplac = 0.0;
 					printf("\n sig(1,1)=%lg", sig(1, 1));
+					printf("\n hsig(1,1)=%lg", hsig(1, 1));
 					printf("\n e22=%lg", porous.c_beam[iuz].XXnew.TotalStrain(1,1));
 					printf("\n e22=%lg", porous.c_beam[iuz].XXold.TotalStrain(1, 1));
 					//pause();
@@ -168,7 +169,7 @@ else {
 			porous.c_beam[iuz].hdisplac = porous.c_beam[iuz].heps_beam_new*(-8 * cube(porous.c_beam[iuz].length) + 4 * porous.c_beam[iuz].length*sqr(porous.c_beam[iuz].little_length) - cube(porous.c_beam[iuz].little_length)) /
 				(24*porous.c_beam[iuz].thickness*(2 * porous.c_beam[iuz].length - porous.c_beam[iuz].little_length));
 		    porous.c_beam[iuz].displac_new = porous.c_beam[iuz].displac_old + porous.c_beam[iuz].hdisplac;
-			porous.c_beam[iuz].L_macro_new = porous.c_beam[iuz].thickness + porous.c_beam[iuz].column - abs (porous.c_beam[iuz].displac_new);
+			porous.c_beam[iuz].L_macro_new = porous.c_beam[iuz].thickness + porous.c_beam[iuz].column + porous.c_beam[iuz].displac_new;
 			porous.c_beam[iuz].XXnew.TotalStrain(1, 1) = 0.0;
 			//porous.c_beam[iuz].XXold.PlasticStrain(1, 1) = 0.0;
 
@@ -178,8 +179,8 @@ else {
 					printf("\n eps(2,2)=%lg", porous.c_beam[iuz].XXnew.TotalStrain(2, 2));
 					printf("\n eps(1,1)=%lg", porous.c_beam[iuz].XXnew.TotalStrain(1, 1));
 					fprintf(stderr, "\n  connected");
-					pause();
-					porous.c_beam[iuz].s33_fix = sig(2, 2);
+	//				pause();
+					porous.c_beam[iuz].s33_fix = (sig(2, 2)+hsig(2,2)/2);
 					//porous.c_beam[iuz].e22_el_fix = porous.c_beam[iuz].XXnew.ElStrain(1, 1);
 					porous.c_beam[iuz].e33_fix = porous.c_beam[iuz].XXnew.TotalStrain(2, 2);
 					porous.force_new = porous.force_old + porous.hforce;
@@ -212,17 +213,18 @@ fprintf(stderr, "\n  first_circle_if_else");
 if ((porous.c_beam[iuz].phoenix == 1.0) && (porous.c_beam[iuz].L_macro_new > porous.c_beam[iuz].L_macro_fix)){
     porous.c_beam[iuz].phoenix = 0.0;
 	porous.c_beam[iuz].XXnew.TotalStrain(2, 2) = porous.c_beam[iuz].XXold.TotalStrain(2, 2);
+	hsig(1, 1) = 0.0;
+	porous.c_beam[iuz].XXnew.TotalStrain(1, 1) = porous.c_beam[iuz].XXold.TotalStrain(1, 1);
 	fprintf(stderr, "\n  disconnect");
-	pause();
+//	pause();
 																											 }
 porous.c_beam[iuz].sig_to_control = sig(1, 1)+hsig(1,1);
 porous.c_beam[iuz].sigma33 = sig(2,2)+hsig(2,2);
 real sig33 = sig(2, 2);
-
 real fdshdf = porous.c_beam[iuz].XXnew.TotalStrain(1, 1);// delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	 }//end of 'iuz'
 		
-		porous.area_macro = (porous.c_beam[0].width*porous.c_beam[0].little_length)*(1 - porosity)*(-1 + porosity + porous.c_beam[0].noV) / (-1 + porous.c_beam[0].noV);
+		porous.area_macro = (porous.c_beam[0].width*porous.c_beam[0].little_length)*sqr(porous.c_beam[0].noV - 1 + porosity)/sqr(-1 + porous.c_beam[0].noV);
 		porous.force_new = porous.force_old + porous.hforce;
 		porous.force_new_eff = porous.force_new*0.01003*0.01086*0.151 / porous.area_macro;
 		porous.L_macro_old_overall = porous.c_beam[0].L_macro_old /*+ 2*porous.c_beam[1].L_macro_old /*+ 4*porous.c_beam[2].L_macro_old + 4*porous.c_beam[3].L_macro_old + 2*porous.c_beam[4].L_macro_old*/;

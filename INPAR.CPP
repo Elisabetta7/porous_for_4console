@@ -208,7 +208,7 @@ void Circular_beam::Init(int iuz, MaterialConstants& MC ,GrainsParameters& GP) /
 	for(int j=0;j<=iuz;j++){fscanf(filrd,"%lg",&little_length);} little_length*=1e-3;
 
 	ffindkey(filrd, "beam_n");
-	for(int j=0;j<=iuz;j++){fscanf(filrd,"%lg",&noV);}
+	for (int j = 0; j <= iuz; j++){ fscanf(filrd, "%lg", &noV); } noV *= 1;
 	//std::cout<<"fi_new="<<fi_angle;  //если не комментировать эти строки, 
     //system("pause");                      //то появится окно с новой фи и всё 
     //std::cin.get();
@@ -235,6 +235,7 @@ void Circular_beam::Init(int iuz, MaterialConstants& MC ,GrainsParameters& GP) /
 
 	displac_old = 0.0;
 	displac_new = 0.0;
+	hdisplac = 0.0;
 	heps_elastic = 0.0;
 	eps_elastic_old = 0.0;
 	eps_elastic_new = 0.0;

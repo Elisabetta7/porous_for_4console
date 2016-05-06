@@ -85,7 +85,7 @@ void print_step(FILE* fttesf ,int print_step_flag,  int na_ekran, int istep, dou
  }
 
 void print_step_header_2slotted_elems(FILE* f){ 
-  fprintf(f,"\n###1time/s   2tem/K     3e33_1/%%  4s33_1/MPa 5e33_2/%% 6s33_2/MPa 7e33_3/%% 8s33_3/MPa 9e33_4/%%  10s33_4/MPa  11lenght_1/m 12s22_1/MPa  13e22_1/%%  14faza_1   15faza_2  16faza_3	17faza_4  18faza_5 19force1/N  20E_macro/%%  21Sigma_macro/MPa  22e33_5/%%  23e_6/%%");
+  fprintf(f,"\n###1time/s   2tem/K     3e33_1/%%  4s33_1/MPa 5e33_2/%% 6s33_2/MPa 7e33_3/%% 8s33_3/MPa 9e33_4/%%  10s33_4/MPa  11lenght_1/m 12s22_1/MPa  13e22_1/%%  14faza_1   15faza_2  16faza_3	17faza_4  18faza_5 19force1/N  20E_macro/%%  21Sigma_macro/MPa  22e33_5/%%  23hdisplace_new/%%");
   fprintf(f,"\n");
 }
 //print_step_2slotted_elems(fttesf ,1 ,0, 0, tim, tem, sig, XXnew1, XXnew2);
@@ -115,6 +115,7 @@ void print_step_2slotted_elems(FILE* fttesf ,int print_step_flag,  int na_ekran,
 		Real e33_4 = Cb[3].XXnew.TotalStrain.C(2, 2)*1e2;
 		Real e33_5 = Cb[4].XXnew.TotalStrain.C(2, 2)*1e2;
 		Real e33_6 = Cb[5].XXnew.TotalStrain.C(2, 2)*1e2;
+		real hdisplace_new = Cb[0].hdisplac;
 		Real length_1 = Cb[0].L_macro_new;
 		//real e33_2=Cb2[iuz_max].XXnew.TotalStrain.C(2,2)*1e2;
 	   //Real Bmax_pl=XX2.Bmax_pl_dmg;
@@ -128,8 +129,7 @@ void print_step_2slotted_elems(FILE* fttesf ,int print_step_flag,  int na_ekran,
 				,istep   ,tim           ,tem	 ,faza_1     ,faza_2      ,e33_1        ,e33_2        ,s33_1          ,s33_2);
        }
        fprintf(fttesf,"\n%10.6lg  %7.8lg  %7.8lg   %7.8lg   %7.8lg   %7.8lg   %7.8lg  %7.8lg   %7.8lg  %7.8lg    %7.8lg     %7.8lg     %7.8lg   %7.8lg     %7.8lg     %7.8lg   %7.8lg      %7.8lg      %7.8lg          %7.8lg             %7.8lg      %7.8lg  %7.8lg"
-		                   , tim,  tem   , e33_1   , s33_1  , e33_2 , s33_2 , e33_3  , s33_3   , e33_4, s33_4  , length_1,  s22_1  ,e22_1 ,  faza_1   , faza_2,  faza_3, faza_4, faza_5,	force_z, e_macro * (-100), stress_macro*1e-6,  e33_5,  e33_6);//////колонки
-	   //we print forces applied to the shaft, they are opposite to forces applied to RSS (round slotted spring)
+		                   , tim,  tem   , e33_1   , s33_1  , e33_2 , s33_2 , e33_3  , s33_3   , e33_4, s33_4  , length_1,  s22_1  ,e22_1 ,  faza_1   , faza_2,  faza_3, faza_4, faza_5,	force_z, e_macro * (-100), stress_macro*1e-6,  e33_5,  hdisplace_new);//////колонки
    } 
  }
 
@@ -683,21 +683,13 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
 			porous.hforce = hforce;
 			//porous.force_new = porous.force_old+porous.hforce;
 			porous.displ_new = porous.displ_old + porous.hdispl;
-  //          porous.displ_new_1 = porous.displ_old_1 + porous.hdispl_1;
-   //         porous.displ_new_2 = porous.displ_old_2 + porous.hdispl_2;
-//			porous.displ_new_3 = porous.displ_old_3 + porous.hdispl_3;
-	//		porous.displ_new_4 = porous.displ_old_4 + porous.hdispl_4;
-			
+ 
 			printf("\nsig(1,1)=%lg, \ne22_1=%lg", /*porous.c_beam[0].K_sig * porous.force_old*/porous.c_beam[0].sig_to_control*1e-6, porous.c_beam[0].XXnew.TotalStrain.C(1, 1)*1e2);
 			
 			Task_force_tem(istep, htim, tem, sig ,hsig ,sig_elastic ,hsig_elastic ,eps ,heps
 				,MC , porous, Vrnts ,GrPar );
-		/*	printf ("\n sig(2,2)=%lg, hsig(2,2)=%lg"  ,sig(2,2), hsig(2,2)  );
-		pause();*/
-		//printf("\nAfter Task_sig:i_step=%i tim=%lg",istep,tim);
-		//pause();
-			printf("\nsig(2,2)=%lg, \ne33_1=%lg", /*porous.c_beam[0].K_sig * porous.force_old*/porous.c_beam[0].sigma33*1e-6, porous.c_beam[0].XXnew.TotalStrain.C(2, 2)*1e2);
-			//if(k_step_flag || ultrasound33_flag || last_step) break;//steps will not be adjusted// commentttt
+		
+			printf("\nsig(1,1)=%lg, \ne22_1=%lg", porous.c_beam[0].sig_to_control*1e-6, porous.c_beam[0].XXnew.TotalStrain.C(1, 1)*1e2);
 		//---step adjusting ----
 			htem=fabs(porous.htem);
 			hfaz_1 = fabs(porous.c_beam[0].XXnew.Phase - porous.c_beam[0].XXold.Phase);
@@ -741,11 +733,6 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
        //XXold = XXnew;
        porous.c_beam_max->XXold = porous.c_beam_max->XXnew;
 	   porous.Update();
-	   real displ_1 = porous.displ_new_1;
-	   real displ_2 = porous.displ_new_2;
-	   real displ_3 = porous.displ_new_3;
-	   real displ_4 = porous.displ_new_4;
-
 
 	 print_step_2slotted_elems(fttesf ,print_step_flag ,0 ,istep ,tim ,porous.tem_old 
 		 , porous.force_old, porous.kc_beams, porous.c_beam, porous.displ_new_1, porous.displ_new_2, porous.displ_new_3, porous.displ_new_4, porous.e_macro, porous.stress_macro, porous.force_new_eff);
