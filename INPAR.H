@@ -405,6 +405,206 @@ class Porous_exVIA
 	~Porous_exVIA(void);
 };
 
+
+
+
+
+
+
+
+
+
+
+class Vertical_beam //circular beam is a part of a slotted spring
+{
+public:
+	int i; // number of the beam in a slotted spring
+	real thickness;
+	real width;
+	real radius;
+	real radius_z;
+	real radius_old;
+	real radius_old_old; //radius_old_old --(deformation)--> radius_old --(deformation)--> radius_new
+	real radius_new;
+	real fi_angle;
+	real fi_angle_z;
+	real fi_angle_old;
+	real fi_angle_new;
+	real fi_angle_old_old; //fi_angle_old_old --(deformation)--> fi_angle_old --(deformation)--> fi_angle_new
+	real J_r;//inertia moment for bending
+	real area;
+	InternalParameters XXold;
+	InternalParameters XXnew;
+	real K_sig_old; //constant to link force and stress
+	real K_sig_new;
+	real Check_destr_old;
+	real Check_destr_new;
+	Real K_frc_geom; //constant to link force and u
+	real Length;
+	real K_u; //constant to link strain and u
+	real fix; // fix, ylitka - constants for Newton's method
+	real ylitka;
+	real dia; //pore's diameter
+	real area_macro_2; //area 
+	real diagonal;
+	//Default constructor
+	//Circular_beam(void){}
+	real heps_beam_old; //increment of strain in the beam
+	real heps_beam_new;
+	real phoenix;
+	//Initializer
+	void Init(int iuv, MaterialConstants& MC, GrainsParameters& GrPar);
+	//Update XXold=XXnew
+	void Update(void);
+	real displ_old(void);
+	real displ_new(void);
+};
+
+
+class Porous_forVert
+{//Vibroisolation element with two round slotted springs (RSS) and arreter
+public:
+	int kv_beams; // number of circular beams
+	Vertical_beam* v_beam;
+	Vertical_beam* v_beam_max;//pointer to the circular beam with the maximum number (kc_beams-1) for the 1st RSS
+	int macro_failure;
+
+	Real mass;//mass to be isolated from external vibrations
+	Real external_damping;
+
+	real tem_old;//temperature of the 1-st RSS
+	real tem_new;
+	real htem;
+
+	real force_old;// force on 1-st RSS, not on the shaft. The force on the shaft = (-1)*force1 
+	real force_new;
+	real hforce;
+	real force_new_eff;
+
+	real force_reaction_old;//reaction force in the displacement limiter
+	real force_reaction_new;
+	real hforce_reaction;
+	real displ0_old;// initial displacement of 1-st RSS
+	real displ0_new;
+
+	real displ_old; //displacement of mass (attached to the housing)
+	real displ_new;
+	real hdispl;
+	real displ_old_1;
+	real displ_new_1;
+	real displ_old_2;
+	real displ_new_2;
+	real displ_old_3;
+	real displ_new_3;
+	real displ_old_4;
+	real displ_new_4;
+	real displ_old_5;
+	real displ_new_5;
+	real displ_old_6;
+	real displ_new_6;
+
+	real displ_new_total;
+	real hdispl_1;
+	real hdispl_2;
+	real hdispl_3;
+	real hdispl_4;
+	real hdispl_5;
+	real hdispl_6;
+
+	real e_macro;
+	real e_macro_1;
+	real e_macro_2;
+
+	real Length;
+	real dlina1;
+	real dlina2;
+	real dlina3;
+	real dlina4;
+	real dlina5;
+	real dlina6;
+	real length_overall;
+
+	real dlina_nov1;
+	real dlina_nov2;
+	real dlina_nov3;
+	real dlina_nov4;
+	real dlina_nov5;
+
+	real dlina_star1;
+	real dlina_star2;
+	real dlina_star3;
+	real dlina_star4;
+	real dlina_star5;
+
+
+	real check1;
+	real check2;
+	real check3;
+	real check4;
+	real check5;
+	real k_parallel;
+	real porosity;
+	real stress_macro;
+	real area_macro;
+
+	real K_u_1;
+	real K_u_2;
+	real konst;
+
+	real K_sig_old;
+	real K_sig_new;
+
+	real Check_destr_old;
+	real Check_destr_new;
+
+	real radius_new_1;
+	real radius_old_1;
+	real fi_angle_new_1;
+	real fi_angle_new_2;
+	real fi_angle_old_1;
+	real fi_angle_old_2;
+	real fi_angle_new_3;
+	real fi_angle_new_4;
+	real fi_angle_old_3;
+	real fi_angle_old_4;
+
+	real velocity_old;
+	real velocity_new;
+	real hvelocity;
+
+	Real mf_factor_old;//for gradual adding of the magnetic force when mf_factor grows from 0.0 to 1.0
+	Real mf_factor_new;
+	Real hmf_factor;
+
+	Real Fa1;
+	Real u1;
+	Real xm1;
+	Real Fa2;
+	Real u2;
+	Real xm2;
+
+	real displ_limit; //maximum displacement (limited by a detent)
+	real F_mag(real displ, real factor);//The magnetic force for a given displacement
+	//Default constructor
+	Porous_forVert(void){}
+	//Initializer
+	void Init(Real tem, Real force, MaterialConstants& MC, GrainsParameters& GrPar);
+	//Update XXold=XXnew
+	void Update(void);
+	//Destructor
+	~Porous_forVert(void);
+};
+
+
+
+
+
+
+
+
+
+
+
 class Isolation
 {//meaning a helical SMA wire isolator
   public:

@@ -21,7 +21,7 @@ void Porous_exVIA::Init(Real tem , Real force ,MaterialConstants& MC ,GrainsPara
 		fprintf(stderr,"\n\nProgram will be terminated\n");
 		pause(); exit(1);
 	}
-	fkeyread_int(filrd, "number_of_beams", &kc_beams);
+	fkeyread_int(filrd, "number_of_horizontal_beams", &kc_beams);
 	fclose(filrd);
 
 	c_beam = new Circular_beam [kc_beams];
@@ -35,13 +35,6 @@ void Porous_exVIA::Init(Real tem , Real force ,MaterialConstants& MC ,GrainsPara
 	
 	filrd=fopen("isolation.d","r");
 
-	//fkeyread_double(filrd, "Magnetic_force_scale_1",&Fa1); //already in Newtons
-	//fkeyread_double(filrd, "Magnetic_force_shift_1",&u1);		u1*=1e-3; // mm --> m
-	//fkeyread_double(filrd, "Magnetic_force_dist_1",&xm1);		xm1*=1e-3; // mm --> m
-	//
-	//fkeyread_double(filrd, "Magnetic_force_scale_2",&Fa2); //already in Newtons
-	//fkeyread_double(filrd, "Magnetic_force_shift_2",&u2);		u2*=1e-3; // mm --> m
-	//fkeyread_double(filrd, "Magnetic_force_dist_2",&xm2);		xm2*=1e-3; // mm --> m
 
 	fkeyread_double(filrd, "Displacement_limit",&displ_limit);	displ_limit*=1e-3; // mm --> m
 	fkeyread_double(filrd, "isolated_mass", &mass);// in kilograms
@@ -156,30 +149,6 @@ Porous_exVIA::~Porous_exVIA()
 	//delete[] c_beam2;
 }
 
-//class Circular_beam //circular beam is a part of a slotted spring
-//{
-//	public:
-//	int i; // number of the beam in a slotted spring
-//	real thickness;
-//	real width;
-//	real radius;
-//	real J_r;//inertia moment for bending
-//	real area;
-//	//real mass; 
-//	//real external_damping; 
-//	InternalParameters XXold;
-//	InternalParameters XXnew;
-//	real K_sig;
-//	real K_u;
-//	//Default constructor
-//	Circular_beam(void){}
-//	//Initializer
-//	void Init(MaterialConstants& ,GrainsParameters&);
-//	void Update(void);
-//	//Destructor
-//	~Circular_beam(void){}
-//	real displ(void){}
-//};
 
 void Circular_beam::Init(int iuz, MaterialConstants& MC ,GrainsParameters& GP) //circular beam is a part of a slotted spring
 {
@@ -267,115 +236,221 @@ void Circular_beam::Init(int iuz, MaterialConstants& MC ,GrainsParameters& GP) /
 void Circular_beam::Update(void) { XXold = XXnew; }
 
 
-void Isolation::Init(void)
+
+
+
+
+
+
+
+void Porous_forVert::Init(Real tem, Real force, MaterialConstants& MC, GrainsParameters& GrPar)   //добавлен real force
 {
 	FILE *filrd;
-	//printf("\n\nIsolation_INIT:");
-	if( (filrd=fopen("isolation.d","r"))==0)
-	{
-	fprintf(stderr,"\n\nCannot open isolation.d");
-	fprintf(stderr,"\n\nProgram will be terminated\n");
-	pause(); exit(1);
+	//printf("\n\nVibro_isol_arret::Init() started.");
+	if ((filrd = fopen("isolation.d", "r")) == 0){
+		fprintf(stderr, "\n\nCannot open isolation.d");
+		fprintf(stderr, "\n\nProgram will be terminated\n");
+		pause(); exit(1);
 	}
+	fkeyread_int(filrd, "number_of_vertical_beams", &kv_beams);
+	fclose(filrd);
+
+	v_beam = new Vertical_beam[kv_beams];
+	//c_beam2 = new Circular_beam [kc_beams];
+	for (int i = 0; i<kv_beams; i++){
+		v_beam[i].Init(i, MC, GrPar);
+		//c_beam2[i].Init(i,MC,GrPar);
+	}//for(i)	
+	v_beam_max = v_beam + (kv_beams - 1);//pointer to the circular beam with the max number for the 1st RSS
+	//c_beam2_max = c_beam2 + (kc_beams-1);//pointer to the circular beam with the max number for the 2nd RSS
+
+	filrd = fopen("isolation.d", "r");
+
+	fkeyread_double(filrd, "Displacement_limit", &displ_limit);	displ_limit *= 1e-3; // mm --> m
+	fkeyread_double(filrd, "isolated_mass", &mass);// in kilograms
+	fkeyread_double(filrd, "damping_coef_of_external_friction", &external_damping);//in N/(m*s) == kg/s
+	fkeyread_double(filrd, "porosity", &porosity);
+	fkeyread_double(filrd, "parallel_elements", &k_parallel);//number of parallel chains of bulks
+
+	fclose(filrd);
+
+	//initial values for temperatures - they must be assigned after reading of [ini_section] of wzd-file
+	tem_old = tem;// temperature of the 1-st RSS
+	tem_new = tem;
+
+
+	//zero initial values for forces and displacements:
+	force_old = 0.0;// on 1-st RSS. The force on the shaft = (-1)*force1 
+	force_new = 0.0;
+	hforce = 0.0;
+	force_new_eff = 0.0;
+
+
+	force_reaction_old = 0.0;//reaction force in the displacement limiter
+	force_reaction_new = 0.0;
+	hforce_reaction = 0.0;
+
+	displ0_old = 0.0;// initial displacement of 1-st RSS
+	displ0_new = 0.0;
 	
-	fkeyread_double(filrd, "wire_diameter_1", &d1); d1*=1e-3; //mm --> m
-	fkeyread_double(filrd, "coil_diameter_1", &D1); D1*=1e-3; //mm --> m
-	fkeyread_double(filrd, "number_of_coils_1", &n1); 
-	fkeyread_double(filrd, "wire_diameter_2", &d2); d2*=1e-3; //mm --> m
-	fkeyread_double(filrd, "coil_diameter_2", &D2); D2*=1e-3; //mm --> m
-	fkeyread_double(filrd, "number_of_coils_2", &n2); 
-	fkeyread_double(filrd, "isolated_mass", &m); //already in kg
-	fkeyread_double(filrd, "damping_coef_of_external_friction", &external_damping); 
+	displ_old = 0.0; //displacement - addition to displacement after the assembly (common for both RSS)
+	displ_new = 0.0;
+	hdispl = 0.0;
+	hdispl_1 = 0.0;
+	hdispl_2 = 0.0;
+	displ_new_1 = 0.0;
+	displ_new_2 = 0.0;
+	displ_old_1 = 0.0;
+	displ_old_2 = 0.0;
+	hdispl_3 = 0.0;
+	hdispl_4 = 0.0;
+	displ_new_3 = 0.0;
+	displ_new_4 = 0.0;
+	displ_old_3 = 0.0;
+	displ_old_4 = 0.0;
+	hdispl_5 = 0.0;
+	displ_new_5 = 0.0;
+	displ_old_5 = 0.0;
+	hdispl_6 = 0.0;
+	displ_new_6 = 0.0;
+	displ_old_6 = 0.0;
+	radius_new_1;
+	radius_old_1;
+	displ_new_total = 0.0;
+	e_macro = 0.0;
+	stress_macro = 0.0;
 
-	K_F_tau1 = pi*d1*d1*d1/(8.0*D1);//coef. for getting axial force applied to a helix from tangential stress
-	K_gam_u1 = d1/(pi*D1*D1*n1);//coef. for getting shear from elongation of a helix
-	K_F_tau2 = pi*d2*d2*d2/(8.0*D2);//coef. for getting axial force applied to a helix from tangential stress
-	K_gam_u2 = d2/(pi*D2*D2*n2);//coef. for getting shear from elongation of a helix
+	velocity_old = 0.0;
+	velocity_new = 0.0;
+	hvelocity = 0.0;
 
-	printf("\n\nIsolation.Init(): 1-st helical element:");
-	printf("\nnumber of coils n1=%5.1lf, wire_diameter d1=%6.2lf mm, coil_diam D1=%5.1lf mm",n1,d1*1e3,D1*1e3);
-	printf("\nK_F_tau1=%8.6lg, K_gam_u1=%8.6lg kg." ,K_F_tau1 ,K_gam_u1);
-	printf("\n\n                  2-nd helical element:");
-	printf("\nnumber of coils n2=%5.1lf, wire_diameter d2=%6.2lf mm, coil_diam D2=%5.1lf mm",n2,d2*1e3,D2*1e3);
-	printf("\nK_F_tau2=%8.6lg, K_gam_u2=%8.6lg kg." ,K_F_tau2 ,K_gam_u2);
-	printf("\n, isolated mass=%8.3lg kg. external_damping=%lg",m,external_damping);
-}// end of Isolation::Init()
+	macro_failure = 0;
+	length_overall = v_beam[0].Length + v_beam[1].Length + v_beam[2].Length /*+ v_beam[3].Length + v_beam[4].Length*/;
 
-
-void Majatnik::Init(void)
-{
- FILE *filrd;
-
- printf("\n\nMajatnik_INIT:");
- if( (filrd=fopen("majatnik.d","r"))==0)
- {
-  fprintf(stderr,"Cannot open majatnik.d \n");
-  pause(); exit(1);
- }
- frd1d(filrd,&Length); Length*=1e-3;  //from mm into m
- frd1d(filrd,&Diameter); Diameter*=1e-3;
- frd1d(filrd,&Plecho); Plecho*=1e-3;
- frd1d(filrd,&MassOfLoad); MassOfLoad*=1e-3; //from g into kg
- frd1d(filrd,&LengthOfLoad); LengthOfLoad*=1e-3; //from mm into m
- frd1d(filrd,&DecrA);
- frd1d(filrd,&DecrM);
- frd1d(filrd,&DecrT);
-
- frd1s(filrd,Pendilum);
- switch(Pendilum[0])
- {
-  case 'S': K2=0.0;
-            break;
-
-  case 'D': frd1d(filrd,&Length2); Length2*=1e-3;  //from mm into m
-            frd1d(filrd,&Diameter2); Diameter2*=1e-3;
-            frd1d(filrd,&Puas2);
-            frd1d(filrd,&Young2);Young2*=1E9;
-	    if(Length2<=0.0 || Diameter2<=0.0 || Puas2<=0.0 || Young2<=0.0)
-            {
-             fprintf(stderr," Error in the steel element parameters definition\n");
-             pause(); exit(1);
-            }
-            K2=pi*Diameter2*Diameter2*Diameter2*Diameter2*Young2/64/(1+Puas2)/Length2;
-            break;
-  default:  fprintf(stderr,"Error Pendilum parameter '%s' is bad",Pendilum);
-            pause(); exit(1);
-            break;
- }
-
- fclose(filrd);
-
- N=0;
- C=0; omega=0;
- Jp=2*MassOfLoad*Plecho*Plecho
-     *(1+LengthOfLoad/Plecho+(LengthOfLoad*LengthOfLoad)/(3*Plecho*Plecho));
-
- printf("\nLength=%6.1lg mm, Diameter=%6.1lg mm,",Length*1e3,Diameter*1e3);
- printf("\nPlecho=%6.1lg mm, MassOfLoad=%6.1lg g,",Plecho*1e3,MassOfLoad*1e3);
- printf("\nJp=%6.1lg g*mm^2,",Jp*1e9);
- printf("\nDecrA=%8.5lg, DecrM=%8.5lg, DecrT=%8.5lg,",DecrA,DecrM,DecrT);
- printf("\nPendilum='%s'",Pendilum);
- if(Pendilum[0]=='D')
- {
-  printf("\nLength2=%6.1lg mm, Diameter2=%6.1lg mm,",Length2*1e3,Diameter2*1e3);
-  printf("\nPuas2=%6.1lg, Young2=%6.1lg GPa.",Puas2,Young2*1e-9);
-  printf("\nK2=%6.1lg.",K2);
- }
+	printf("\nVibro_isol_arret.Init:");
 }
 
-Real Majatnik::Psi(Real t)
-{
- Real Psi=0;
- for( int i=0;i<N;i++) Psi+=C[i]*sin(omega[i]*t);
- return(Psi);
+void Porous_forVert::Update(){
+	macro_failure = 0;
+	for (int i = 0; i<kv_beams; i++){
+		if (v_beam[i].XXnew.PI_macro == 1) macro_failure = 1;
+		//if(c_beam2[i].XXnew.PI_macro == 1 ) macro_failure2=1;
+		v_beam[i].Update();
+		//pause();
+		v_beam[i].fi_angle_old = v_beam[i].fi_angle_new;
+		v_beam[i].fi_angle_old_old = v_beam[i].fi_angle_old;
+		v_beam[i].radius_old = v_beam[i].radius_new;
+		v_beam[i].radius_old_old = v_beam[i].radius_old;
+		v_beam[i].K_sig_old = v_beam[i].K_sig_new;
+		v_beam[i].Check_destr_old = v_beam[i].Check_destr_new;
+		v_beam[i].heps_beam_old = v_beam[i].heps_beam_new;
+	}//for(i)	
+	tem_old = tem_new;
+	force_old = force_new;
+	displ0_old = displ0_new;
+	displ_old_1 = displ_new_1;
+	displ_old_2 = displ_new_2;
+	displ_old = displ_new;
+	macro_failure = macro_failure;
+	force_reaction_old = force_reaction_new;
 }
 
-Real Majatnik::dPsi(Real t)
+Porous_forVert::~Porous_forVert()
 {
- Real dPsi=0;
- for( int i=0;i<N;i++) dPsi+=C[i]*omega[i]*cos(omega[i]*t);
- return(dPsi);
+	for (int i = 0; i<kv_beams; i++){
+		(v_beam + i)->Vertical_beam::~Vertical_beam();
+	}//for(i)	
+	delete[] v_beam;
 }
+
+void Vertical_beam::Init(int iuv, MaterialConstants& MC, GrainsParameters& GP) //for vertically oriented beams
+{
+	FILE *filrd;
+	//printf("\n\nCircular_beam::Init :");
+	if ((filrd = fopen("isolation.d", "r")) == 0){
+		fprintf(stderr, "\n\nCannot open isolation.d");
+		fprintf(stderr, "\n\nProgram will be terminated\n");
+		pause(); exit(1);
+	}
+
+	ffindkey(filrd, "beam_vwidths");
+	for (int j = 0; j <= iuv; j++){ fscanf(filrd, "%lg", &width); } width *= 1e-3; //mm --> m
+	//we ignore all values until its number == iuz
+
+	ffindkey(filrd, "beam_radii");
+	for (int j = 0; j <= iuv; j++){ fscanf(filrd, "%lg", &radius); } radius *= 1e-3; //mm --> m
+
+	ffindkey(filrd, "beam_vthicknesses");
+	for (int j = 0; j <= iuv; j++){ fscanf(filrd, "%lg", &thickness); } thickness *= 1e-3; //mm --> m
+
+	ffindkey(filrd, "beam_fi_angles");
+	for (int j = 0; j <= iuv; j++){ fscanf(filrd, "%lg", &fi_angle); }
+
+	ffindkey(filrd, "diameter");
+	for (int j = 0; j <= iuv; j++){ fscanf(filrd, "%lg", &dia); } dia *= 1e-3;
+
+	ffindkey(filrd, "diagonal");
+	for (int j = 0; j <= iuv; j++){ fscanf(filrd, "%lg", &diagonal); } diagonal *= 1e-3;
+	//std::cout<<"fi_new="<<fi_angle;  //если не комментировать эти строки, 
+	//system("pause");                      //то по€витс€ окно с новой фи и всЄ 
+	//std::cin.get();
+	radius_z = radius;
+	radius_old = radius;
+	radius_new = radius;
+	radius_old_old = radius;
+
+	fi_angle_z = fi_angle;
+	fi_angle_old = fi_angle;
+	fi_angle_new = fi_angle;
+	fi_angle_old_old = fi_angle;
+	//printf("\n iuz=%u, angle_old=%lg , angle_new=%lg", iuz   , fi_angle_old ,fi_angle_new);
+	//pause();
+
+	XXold.TotalStrain(2, 2) = 0.0;
+	XXnew.TotalStrain(2, 2) = 0.0;
+	heps_beam_old = 0.0;
+	heps_beam_new = 0.0;
+
+	Check_destr_new = 0.0;
+	Check_destr_old = 0.0;
+	phoenix = 0.0;
+
+	XXold.Init(MC, GP);
+	XXnew.Init(MC, GP);
+	fclose(filrd);
+	//std::cout<<"fi_new="<<fi_angle;  // дл€ проверки, читает ли.
+	//system("pause");                       
+	//std::cin.get();
+
+	J_r = width*cube(thickness) / 12.0;
+	area = thickness*width;
+	//area_macro_0 = pi*(sqr(diagonal + dia));
+	//area_macro_2 = (thickness+0.00003)*(width+0.00003);//0.005 and 0.005 - pore's diametres, 0.5661 = (1-p)^2 
+	//K_sig = ((-2*sin(fi_angle_z/2))/(fi_angle_z*width*thickness)
+	//          +6*sqr(radius_z)*(-2*(sin(fi_angle_z/2))/fi_angle_z+1)/(width*sqr(thickness)*(radius_z+thickness/2))); //это мой
+	K_sig_old = (-1) / (width*thickness) +
+		2 * (fi_angle_z / 2 - sin(fi_angle_z / 2))*(radius_z - thickness / ((log(radius_z / (radius_z - thickness)))))
+		/ (fi_angle_z*width*thickness*(radius_z - thickness / 2 - thickness / ((log(radius_z / (radius_z - thickness))))));
+	K_frc_geom = radius*(fi_angle + sin(fi_angle)) / (2 * width * thickness)
+		+ 3 * radius*(fi_angle - sin(fi_angle)) / (5 * width*thickness / (2 + 2 * 0.33))
+		+ 24 * cube(radius) * (fi_angle / 4 + sin(fi_angle) / 4 - 2 * sqr(sin(fi_angle / 2)) / fi_angle)
+		/ (width * cube(thickness));
+	Length = 2 * radius*sin(fi_angle / 2);
+	/*K_sig = 1.5*radius/width/sqr(thickness);
+	K_u = sqr(radius)/thickness;*/
+	printf("\nVertical_beam.Init:");
+	printf("iuz=%i thickness=%lg width=%lg radius=%lg fi_angle=%lg", iuv, thickness, width, radius, fi_angle);
+	//pause();
+};
+
+void Vertical_beam::Update(void) { XXold = XXnew; }
+
+
+
+
+
+
+
 
 void MaterialConstants::Init(void)
 {

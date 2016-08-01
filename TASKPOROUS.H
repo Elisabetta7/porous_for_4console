@@ -24,6 +24,7 @@ int Task_force_tem
 	 ,Matr33& heps
 	 ,MaterialConstants& MC
 	 ,Porous_exVIA&  porous
+	 ,Porous_forVert& vert
 	 ,VariantsOrientations&  Vrnts 
 	 ,GrainsParameters& GrPar 
  );
@@ -47,23 +48,11 @@ int Task_force_2_slotted_elements
 					 Real htim
 					,Real& hdispl
 					,Porous_exVIA& porous
+					,Porous_forVert& vert
 					,MaterialConstants& MC
 					,VariantsOrientations& Vrnts
 					,GrainsParameters& GrPar
 				);
-
-//int Task_force_2_slotted_elements
-//	(
-//		real htim		,real tem1		,real tem2  	,real htem1		,real htem2
-//		,real force1	,real force2	,real hforce
-//		,real& hdispl
-//		,MaterialConstants& MC
-//		,VariantsOrientations& Vrnts
-//		,GrainsParameters& GrPar
-//		,int Kuz
-//		,Circular_beam* Cb1
-//		,Circular_beam* Cb2
-//	);
 
 	int Task_VIA_operation
 	( 
@@ -71,7 +60,8 @@ int Task_force_2_slotted_elements
 		,int& VibrContinue	
 		,Real htim	
 		,Real hground_displ	
-		,Porous_exVIA& porous	
+		,Porous_exVIA& porous
+		,Porous_forVert& vert
 		,MaterialConstants& MC
 		,VariantsOrientations& Vrnts
 		,GrainsParameters& GrPar

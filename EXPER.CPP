@@ -85,19 +85,21 @@ void print_step(FILE* fttesf ,int print_step_flag,  int na_ekran, int istep, dou
  }
 
 void print_step_header_2slotted_elems(FILE* f){ 
-  fprintf(f,"\n###1time/s   2tem/K     3e33_1/%%  4s33_1/MPa 5e33_2/%% 6s33_2/MPa 7e33_3/%% 8s33_3/MPa 9e33_4/%%  10s33_4/MPa  11lenght_1/m 12s22_1/MPa  13e22_1/%%  14faza_1   15faza_2  16faza_3	17faza_4  18faza_5 19force1/N  20E_macro/%%  21Sigma_macro/MPa  22e33_5/%%  23hdisplace_new/%%");
+  fprintf(f,"\n###1time/s   2tem/K     3e33_1/%%  4s33_1/MPa 5e33_2/%% 6s33_2/MPa 7e33_3/%% 8s33_3/MPa 9e33_4/%%  10s33_4/MPa  11e33v_1/%% 12s33v_1/MPa  13faza_1/%%  14faza_2/MPa   15e33v_3/%%  16s33v_3/MPa	17faza_3  18faza_4 19faza_1v  20E_macro/%%  21Sigma_macro/MPa  22faza_3v  23rad3/%%");
   fprintf(f,"\n");
 }
 //print_step_2slotted_elems(fttesf ,1 ,0, 0, tim, tem, sig, XXnew1, XXnew2);
 void print_step_2slotted_elems(FILE* fttesf ,int print_step_flag,  int na_ekran, int istep, double tim, double tem,
-	double force_z, int Kuz, Circular_beam* Cb, double displ_1, double displ_2, double displ_3, double displ_4, double e_macro, double stress_macro, double force_new_eff){
+	double force_z, int Kuz, Circular_beam* Cb, Vertical_beam*Vb, double displ_1, double displ_2, double displ_3, double displ_4, double e_macro, double stress_macro, double force_new_eff){
    if(print_step_flag){
 		int iuz_max=Kuz-1;
 		Real faza_1 = Cb[0].XXnew.Phase;
 		Real faza_2 = Cb[1].XXnew.Phase;    
 		Real faza_3 = Cb[2].XXnew.Phase;
 		Real faza_4 = Cb[3].XXnew.Phase;
-		Real faza_5 = Cb[4].XXnew.Phase;
+		Real faza_1v = Vb[0].XXnew.Phase;
+		Real faza_2v = Vb[1].XXnew.Phase;
+		Real faza_3v = Vb[2].XXnew.Phase;
 		//Real faza2 = Cb2[iuz_max].XXnew.Phase;
 		int k_dmg=Cb[iuz_max].XXnew.kzer_dmg;
 		Real Ro = Cb[iuz_max].XXnew.RoGrainNorma*1e-6;
@@ -115,8 +117,17 @@ void print_step_2slotted_elems(FILE* fttesf ,int print_step_flag,  int na_ekran,
 		Real e33_4 = Cb[3].XXnew.TotalStrain.C(2, 2)*1e2;
 		Real e33_5 = Cb[4].XXnew.TotalStrain.C(2, 2)*1e2;
 		Real e33_6 = Cb[5].XXnew.TotalStrain.C(2, 2)*1e2;
+
+		Real e33v_1 = Vb[0].XXnew.TotalStrain.C(2, 2)*1e2;
+		Real e33v_2 = Vb[1].XXnew.TotalStrain.C(2, 2)*1e2;
+		Real e33v_3 = Vb[2].XXnew.TotalStrain.C(2, 2)*1e2;
+		Real s33v_1 = Cb[0].K_sig * force_z*1e-6;//////////////////////////////////////////////////////////////////////////////////////////
+		Real s33v_2 = Cb[1].K_sig * force_z*1e-6;
+		Real s33v_3 = Cb[2].K_sig*force_z*1e-6;
+		real rad3 = Vb[2].radius_new*sin(Vb[2].fi_angle_new / 2);
 		real hdisplace_new = Cb[0].hdisplac;
 		Real length_1 = Cb[0].L_macro_new;
+		real ugl = Vb[0].K_sig_new;
 		//real e33_2=Cb2[iuz_max].XXnew.TotalStrain.C(2,2)*1e2;
 	   //Real Bmax_pl=XX2.Bmax_pl_dmg;
 	   //Real Bmean_pl=XX2.Bmean_pl_dmg;
@@ -129,7 +140,7 @@ void print_step_2slotted_elems(FILE* fttesf ,int print_step_flag,  int na_ekran,
 				,istep   ,tim           ,tem	 ,faza_1     ,faza_2      ,e33_1        ,e33_2        ,s33_1          ,s33_2);
        }
        fprintf(fttesf,"\n%10.6lg  %7.8lg  %7.8lg   %7.8lg   %7.8lg   %7.8lg   %7.8lg  %7.8lg   %7.8lg  %7.8lg    %7.8lg     %7.8lg     %7.8lg   %7.8lg     %7.8lg     %7.8lg   %7.8lg      %7.8lg      %7.8lg          %7.8lg             %7.8lg      %7.8lg  %7.8lg"
-		                   , tim,  tem   , e33_1   , s33_1  , e33_2 , s33_2 , e33_3  , s33_3   , e33_4, s33_4  , length_1,  s22_1  ,e22_1 ,  faza_1   , faza_2,  faza_3, faza_4, faza_5,	force_z, e_macro * (-100), stress_macro*1e-6,  e33_5,  hdisplace_new);//////колонки
+		                   , tim,  tem   , e33_1   , s33_1  , e33_2 , s33_2 , e33_3  , s33_3   , e33_4, s33_4  , e33v_1,  s33v_1  ,faza_1 ,  faza_2   , e33v_3, s33v_3, faza_3, faza_4,	faza_1v, e_macro * (-100), stress_macro*1e-6,  faza_3v,  rad3);//////колонки
    } 
  }
 
@@ -394,7 +405,9 @@ sig = 0.0; hsig = 0.0; sig_elastic = 0.0; hsig_elastic = 0.0; eps = 0.0; heps = 
 
 InternalParameters XXold, XXnew;
 Porous_exVIA porous; 
+Porous_forVert vert;
 porous.Init(tem,force,MC,GrPar);
+vert.Init(tem,force,MC,GrPar);
 macro_failure_pointer = &porous.macro_failure;
 
 printf("\n160: porous.Init passed successfully ");
@@ -404,7 +417,7 @@ printf("\n160: porous.Init passed successfully ");
 //------------------------------------------------------------------------------------------------------------
 	print_step_header_2slotted_elems(fttesf);
 	print_step_2slotted_elems(fttesf ,1 ,1, 0, tim, porous.tem_old, porous.force_old, porous.kc_beams 
-									,porous.c_beam ,porous.displ_new_1, porous.displ_new_2 ,porous.displ_new_3, porous.displ_new_4, porous.e_macro ,porous.stress_macro ,porous.force_new_eff);
+									,porous.c_beam , vert.v_beam, porous.displ_new_1, porous.displ_new_2 ,porous.displ_new_3, porous.displ_new_4, porous.e_macro ,porous.stress_macro ,porous.force_new_eff);
 
 printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
 //pause();
@@ -687,7 +700,7 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
 			printf("\nsig(1,1)=%lg, \ne22_1=%lg", /*porous.c_beam[0].K_sig * porous.force_old*/porous.c_beam[0].sig_to_control*1e-6, porous.c_beam[0].XXnew.TotalStrain.C(1, 1)*1e2);
 			
 			Task_force_tem(istep, htim, tem, sig ,hsig ,sig_elastic ,hsig_elastic ,eps ,heps
-				,MC , porous, Vrnts ,GrPar );
+				,MC , porous, vert, Vrnts ,GrPar );
 		
 			printf("\nsig(1,1)=%lg, \ne22_1=%lg", porous.c_beam[0].sig_to_control*1e-6, porous.c_beam[0].XXnew.TotalStrain.C(1, 1)*1e2);
 		//---step adjusting ----
@@ -732,10 +745,12 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
        tim_etap+=htim;// s33_us += hs33_us;
        //XXold = XXnew;
        porous.c_beam_max->XXold = porous.c_beam_max->XXnew;
+	   vert.v_beam_max->XXold = vert.v_beam_max->XXnew;
 	   porous.Update();
+	   vert.Update();
 
 	 print_step_2slotted_elems(fttesf ,print_step_flag ,0 ,istep ,tim ,porous.tem_old 
-		 , porous.force_old, porous.kc_beams, porous.c_beam, porous.displ_new_1, porous.displ_new_2, porous.displ_new_3, porous.displ_new_4, porous.e_macro, porous.stress_macro, porous.force_new_eff);
+		 , porous.force_old, porous.kc_beams, porous.c_beam, vert.v_beam, porous.displ_new_1, porous.displ_new_2, porous.displ_new_3, porous.displ_new_4, porous.e_macro, porous.stress_macro, porous.force_new_eff);
 
     }// for int istep while tim < tim_ke
     break;//from switch case load:
@@ -806,7 +821,7 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
 			
 
 			Task_force_tem(istep, htim, tem, sig, hsig, sig_elastic, hsig_elastic, eps, heps
-				,MC , porous, Vrnts ,GrPar);
+				,MC , porous, vert, Vrnts ,GrPar);
 			//---step adjusting ----
 			//Real hfaz1=c_beam1[iuz_max].XXnew.Phase - c_beam1[iuz_max].XXold.Phase;
 			
@@ -838,12 +853,13 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
 		tim += htim; tim_etap+=htim;
 		tem=tem_ke;
         porous.Update();
+		vert.Update();
 	
 		if(istep%20==0) printf("\rE235: istep=%i force=%lg N hforce=%lg N "
 									   ,istep  ,porous.force_new ,hforce );
 
 		print_step_2slotted_elems(fttesf ,print_step_flag ,0 ,istep ,tim ,porous.tem_old 
-			, porous.force_old, porous.kc_beams, porous.c_beam, porous.displ_new_1, porous.displ_new_2, porous.displ_new_3, porous.displ_new_4, porous.e_macro, porous.stress_macro, porous.force_new_eff);
+			, porous.force_old, porous.kc_beams, porous.c_beam, vert.v_beam, porous.displ_new_1, porous.displ_new_2, porous.displ_new_3, porous.displ_new_4, porous.e_macro, porous.stress_macro, porous.force_new_eff);
 														//na_ekran	
 	}// for istep 
 
@@ -965,7 +981,7 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
 		if( (retcode = 
 						Task_force_tem
 						( 
-						istep, htim, tem, sig, hsig, sig_elastic, hsig_elastic, eps, heps, MC, porous, Vrnts, GrPar
+						istep, htim, tem, sig, hsig, sig_elastic, hsig_elastic, eps, heps, MC, porous, vert, Vrnts, GrPar
 						)
 			)!=0 
 
@@ -976,6 +992,7 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
 	ground_displ+=hground_displ;
 	tim += htim; tim_etap+=htim; 	//TaskVibr32_Isolation has calculated hmass_displ, hmass_velocity, heps and hsigma32
 	porous.Update();
+	vert.Update();
 	mass_accel = porous.hvelocity / htim;
 
 	if(vibr_trig_polynom_flag){
@@ -988,7 +1005,7 @@ printf("\n\nInitial state13: tim=%lg tem=%lg  \n", tim, tem);
 { 
 		int na_ekran=1;
 		print_step_2slotted_elems(fttesf ,print_step_flag ,na_ekran ,istep ,tim ,porous.tem_old  
-										,porous.force_old ,porous.kc_beams ,porous.c_beam ,porous.displ_new_1 ,porous.displ_new_2, porous.displ_new_3, porous.displ_new_4, porous.e_macro ,porous.stress_macro ,porous.force_new_eff);
+										,porous.force_old ,porous.kc_beams ,porous.c_beam, vert.v_beam, porous.displ_new_1 ,porous.displ_new_2, porous.displ_new_3, porous.displ_new_4, porous.e_macro ,porous.stress_macro ,porous.force_new_eff);
 }//end block							//old values here are the same as new
 	
 	//pause();
